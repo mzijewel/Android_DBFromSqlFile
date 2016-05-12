@@ -20,7 +20,7 @@ public class DBTest extends ActivityInstrumentationTestCase2<MainActivity> {
         DBManager db=DBManager.getInstance();
         MPerson person=new MPerson();
         person.setId(1);
-        person.setName("Test 1");
+        person.setName("Test 1 u");
         db.addData(DBManager.TABLE_PERSON, person);
 
         ArrayList<MPerson>persons=db.getData(DBManager.TABLE_PERSON,new MPerson());
