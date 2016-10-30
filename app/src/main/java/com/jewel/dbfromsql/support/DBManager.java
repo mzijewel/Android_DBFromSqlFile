@@ -31,6 +31,7 @@ public class DBManager extends SQLiteOpenHelper {
     public static final String KEY_ID = "id";
     public static final String KEY_FK_ID = "fk_id";
     public static final String KEY_NAME = "name";
+    public static final String KEY_PHONE = "phone";
     public static final String KEY_OCCUPATION = "occupation";
 
 
@@ -41,6 +42,7 @@ public class DBManager extends SQLiteOpenHelper {
             .newTable(TABLE_PERSON)
             .addField(KEY_ID, DBQuery.INTEGER_PRI_AUTO)
             .addField(KEY_NAME, DBQuery.TEXT)
+            .addField(KEY_PHONE, DBQuery.TEXT)
             .getTable();
     private static final String CREATE_TABLE_DETAILS = DBQuery.init()
             .newTable(TABLE_DETAILS)
@@ -108,15 +110,14 @@ public class DBManager extends SQLiteOpenHelper {
     }
 
 
-    private boolean isExist(String table, int id) {
-
+    private boolean isExist(String table, String searchField, String value) {
+        if (value.equals("") || Integer.valueOf(value) <= 0)
+            return false;
         Cursor cursor = null;
         try {
-            cursor = db.rawQuery("select * from " + table + " where id='" + id + "'", null);
-            if (cursor != null && cursor.getCount() > 0) {
-                Log.e("DB","exist "+id);
+            cursor = db.rawQuery("select * from " + table + " where " + searchField + "='" + value + "'", null);
+            if (cursor != null && cursor.getCount() > 0)
                 return true;
-            }
         } catch (Exception e) {
 
         } finally {
@@ -125,10 +126,9 @@ public class DBManager extends SQLiteOpenHelper {
 
         }
 
-        Log.e("DB","not exist "+id);
+
         return false;
     }
-
     private String getStringValue(Cursor cursor, String key) {
 
         if (cursor.getColumnIndex(key) == -1)
@@ -145,10 +145,9 @@ public class DBManager extends SQLiteOpenHelper {
     }
 
 
-    public long addData(String tableName, Object dataModelClass) {
-
+    public long addData(String tableName, Object dataModelClass, String primaryKey) {
         long result = -1;
-        String id = "";
+        String valueOfKey = "";
         try {
             Class myClass = dataModelClass.getClass();
             Field[] fields = myClass.getDeclaredFields();
@@ -156,47 +155,42 @@ public class DBManager extends SQLiteOpenHelper {
 
             for (Field field : fields) {
                 //for getting access of private field
+
+
+                String name = field.getName();
                 field.setAccessible(true);
                 Object value = field.get(dataModelClass);
-                String name = field.getName();
 
+                if (name.equalsIgnoreCase("serialVersionUID")
+                        || name.equalsIgnoreCase("$change")
+                        ) {
 
+                } else {
+                    if(!name.equals(primaryKey))
+                    contentValues.put(name, value + "");
+                    if (name.equalsIgnoreCase(primaryKey)) {
 
-                if (name != null && name.equals("id")){
-
-                    id = value + "";
-                    if(!id.equals("0")){
-                        contentValues.put(name,id);
+                        valueOfKey = value + "";
                     }
 
-                }else
-                    contentValues.put(name, value + "");
-
-            }
-            if (id != null)
-                if (!isExist(tableName, Integer.valueOf(id))) {
-                    Log.e("DB-inserted", id);
-                    result = db.insert(tableName, null, contentValues);
-                } else {
-                    Log.e("DB-updated", id+":"+contentValues.get("name"));
-                    db.update(tableName, contentValues, "id=?", new String[]{id + ""});
                 }
 
 
-        } catch (SecurityException ex) {
-        } catch (IllegalArgumentException ex) {
-        } catch (IllegalAccessException ex) {
+            }
+Log.e("DB","f:"+primaryKey+":"+valueOfKey);
+            if (!isExist(tableName, primaryKey, valueOfKey)) {
+                Log.e("DB","insert");
+                result = db.insert(tableName, null, contentValues);
+            } else {
+                Log.e("DB","update");
+                result = db.update(tableName, contentValues, primaryKey + "=?", new String[]{valueOfKey + ""});
+            }
+
+
+        } catch (Exception e) {
         } finally {
 
         }
-        return result;
-    }
-
-    public <T> long addAllData(String tableName, ArrayList<T> dataModelClass) {
-        long result = -1;
-        Log.e("DB-addAllData", "add all");
-        for (Object model : dataModelClass)
-            result = addData(tableName, model);
         return result;
     }
 
@@ -244,7 +238,7 @@ public class DBManager extends SQLiteOpenHelper {
     }
 
 
-    public <T> long addData(ArrayList<T> list, String table) {
+    public <T> long addAllData(ArrayList<T> list, String table,String searchFiled,String valueOfField) {
         long result = -1;
 
 
@@ -270,7 +264,7 @@ public class DBManager extends SQLiteOpenHelper {
             } catch (IllegalAccessException ex) {
             }
 
-            if (isExist(table, id)) {
+            if (isExist(table,searchFiled, valueOfField)) {
                 result = db.update(table, contentValues, KEY_ID + "=?", new String[]{id + ""});
             } else {
                 result = db.insert(table, null, contentValues);

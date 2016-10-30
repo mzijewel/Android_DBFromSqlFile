@@ -6,6 +6,15 @@ package com.jewel.dbfromsql.model;
 public class MPerson {
     private int id;
     private String name;
+    private String phone;
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
 
     public int getId() {
         return id;
