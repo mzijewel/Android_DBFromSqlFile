@@ -151,7 +151,7 @@ public class DBQuery {
             a += fields.get(i).getName() + " " + fields.get(i).getType() + ((i < fields.size() - 1) ? "," : "");
         }
 
-        String query = "create table " + tableName + " (" + a + ")";
+        String query = "create table if not exists " + tableName + " (" + a + ")";
         return query;
     }
 

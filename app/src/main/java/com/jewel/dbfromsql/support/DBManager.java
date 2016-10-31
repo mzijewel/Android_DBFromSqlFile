@@ -5,7 +5,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 import com.google.gson.Gson;
 import com.jewel.dbfromsql.R;
@@ -25,14 +24,11 @@ import java.util.ArrayList;
  */
 public class DBManager extends SQLiteOpenHelper {
     public static final String TABLE_PERSON = "tbl_person";
-    public static final String TABLE_DETAILS = "tbl_details";
 
 
     private static final String KEY_ID = "id";
-    private static final String KEY_FK_ID = "fk_id";
     private static final String KEY_NAME = "name";
     private static final String KEY_PHONE = "phone";
-    private static final String KEY_OCCUPATION = "occupation";
 
 
     private static final int DB_VERSION = 1;
@@ -43,12 +39,6 @@ public class DBManager extends SQLiteOpenHelper {
             .addField(KEY_ID, DBQuery.INTEGER_PRI_AUTO)
             .addField(KEY_NAME, DBQuery.TEXT)
             .addField(KEY_PHONE, DBQuery.TEXT)
-            .getTable();
-    private static final String CREATE_TABLE_DETAILS = DBQuery.init()
-            .newTable(TABLE_DETAILS)
-            .addField(KEY_ID, DBQuery.INTEGER_PRI_AUTO)
-            .addField(KEY_FK_ID,DBQuery.INTEGER)
-            .addField(KEY_OCCUPATION, DBQuery.TEXT)
             .getTable();
 
 
@@ -69,16 +59,12 @@ public class DBManager extends SQLiteOpenHelper {
         return instance;
     }
 
-    public static String getQueryAll(String table) {
-        return "select * from " + table;
-    }
-
     @Override
     public void onCreate(SQLiteDatabase db) {
+        //create tables
         db.execSQL(CREATE_TABLE_PERSON);
-        db.execSQL(CREATE_TABLE_DETAILS);
 
-
+        //load sql code from external file
         String queries = getStringFromFile(R.raw.default_db);
         for (String query : queries.split(";")) {
             db.execSQL(query);
@@ -87,10 +73,10 @@ public class DBManager extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        //delete tables after upgrading
         db.execSQL(DBQuery.QUERY_DROP + TABLE_PERSON);
-        db.execSQL(DBQuery.QUERY_DROP + TABLE_DETAILS);
 
-
+        //create tables after upgrading
         onCreate(db);
     }
 
@@ -129,19 +115,13 @@ public class DBManager extends SQLiteOpenHelper {
 
         return false;
     }
+
     private String getStringValue(Cursor cursor, String key) {
 
         if (cursor.getColumnIndex(key) == -1)
             return "na";
         else
             return cursor.getString(cursor.getColumnIndex(key));
-    }
-
-    private int getIntValue(Cursor cursor, String key) {
-        if (cursor.getColumnIndex(key) == -1)
-            return 0;
-        else
-            return cursor.getInt(cursor.getColumnIndex(key));
     }
 
 
@@ -161,15 +141,15 @@ public class DBManager extends SQLiteOpenHelper {
                 field.setAccessible(true);
                 Object value = field.get(dataModelClass);
 
+                //ignore special field while refracting
                 if (name.equalsIgnoreCase("serialVersionUID")
                         || name.equalsIgnoreCase("$change")
                         ) {
 
                 } else {
-                    if(!name.equals(primaryKey))
-                    contentValues.put(name, value + "");
+                    if (!name.equals(primaryKey))
+                        contentValues.put(name, value + "");
                     if (name.equalsIgnoreCase(primaryKey)) {
-
                         valueOfKey = value + "";
                     }
 
@@ -177,12 +157,9 @@ public class DBManager extends SQLiteOpenHelper {
 
 
             }
-Log.e("DB","f:"+primaryKey+":"+valueOfKey);
             if (!isExist(tableName, primaryKey, valueOfKey)) {
-                Log.e("DB","insert");
                 result = db.insert(tableName, null, contentValues);
             } else {
-                Log.e("DB","update");
                 result = db.update(tableName, contentValues, primaryKey + "=?", new String[]{valueOfKey + ""});
             }
 
@@ -238,7 +215,7 @@ Log.e("DB","f:"+primaryKey+":"+valueOfKey);
     }
 
 
-    public <T> long addAllData(ArrayList<T> list, String table,String searchFiled,String valueOfField) {
+    public <T> long addAllData(ArrayList<T> list, String table, String searchFiled, String valueOfField) {
         long result = -1;
 
 
@@ -264,7 +241,7 @@ Log.e("DB","f:"+primaryKey+":"+valueOfKey);
             } catch (IllegalAccessException ex) {
             }
 
-            if (isExist(table,searchFiled, valueOfField)) {
+            if (isExist(table, searchFiled, valueOfField)) {
                 result = db.update(table, contentValues, KEY_ID + "=?", new String[]{id + ""});
             } else {
                 result = db.insert(table, null, contentValues);
@@ -276,42 +253,8 @@ Log.e("DB","f:"+primaryKey+":"+valueOfKey);
         return result;
     }
 
-
-    public <T> ArrayList<T> getList(String sql, Object myInstance) {
-
-        ArrayList<T> list = new ArrayList<>();
-        Cursor cursor = db.rawQuery(sql, null);
-        Gson gson = new Gson();
-        if (cursor != null && cursor.moveToFirst()) {
-            JSONObject jsonObject = new JSONObject();
-            do {
-
-                try {
-                    Class myClass = myInstance.getClass();
-                    Field[] fields = myClass.getDeclaredFields();
-                    for (Field field : fields) {
-                        //for getting access of private field
-                        field.setAccessible(true);
-                        String name = field.getName();
-                        jsonObject.put(name, getStringValue(cursor, name));
-
-                    }
-                } catch (SecurityException ex) {
-                } catch (IllegalArgumentException ex) {
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-                myInstance = gson.fromJson(jsonObject.toString(), myInstance.getClass());
-                list.add((T) myInstance);
-            } while (cursor.moveToNext());
-        }
-
-        return list;
-    }
-
-    public int delete(String table,String searchField,String value){
-        return db.delete(table,searchField+"=?",new String[]{value});
+    public int delete(String table, String searchField, String value) {
+        return db.delete(table, searchField + "=?", new String[]{value});
     }
 
 }

@@ -3,7 +3,6 @@ package com.jewel.dbfromsql;
 import android.app.Dialog;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
@@ -31,8 +30,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         prepareList();
 
 
-
     }
+
 
     private void init() {
         edtName = (EditText) findViewById(R.id.edtName);
