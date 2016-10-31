@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onClick(View v) {
                 final Dialog diaEdit=new Dialog(MainActivity.this);
                 diaEdit.requestWindowFeature(Window.FEATURE_NO_TITLE);
-                diaEdit.setContentView(R.layout.dia);
+                diaEdit.setContentView(R.layout.dia_edit);
                 diaEdit.show();
 
                 final EditText edtName= (EditText) diaEdit.findViewById(R.id.edtName);
@@ -82,11 +82,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void onClick(View v) {
                         persons.get(pos).setName(edtName.getText().toString());
-                        persons.get(pos).setName(edtPhone.getText().toString());
+                        persons.get(pos).setPhone(edtPhone.getText().toString());
 
                         DBManager.getInstance().addData(DBManager.TABLE_PERSON,persons.get(pos),"id");
                         diaEdit.dismiss();
                         dialog.dismiss();
+                        prepareList();
                     }
                 });
             }
@@ -94,7 +95,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int r=DBManager.getInstance().delete(DBManager.TABLE_PERSON,"id",persons.get(pos).getId()+"");
+                DBManager.getInstance().delete(DBManager.TABLE_PERSON,"id",persons.get(pos).getId()+"");
                 dialog.dismiss();
                 prepareList();
             }
