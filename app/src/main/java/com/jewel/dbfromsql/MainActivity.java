@@ -1,8 +1,11 @@
 package com.jewel.dbfromsql;
 
+import android.app.Dialog;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -44,6 +47,58 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         persons = new ArrayList<>();
         list.setAdapter(adapter);
 
+        adapter.setiUpdate(new AdPerson.IUpdate() {
+            @Override
+            public void onUpdate(int pos) {
+                openDialog(pos);
+            }
+        });
+    }
+    private void openDialog(final int pos){
+        final Dialog dialog=new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.dia);
+        dialog.show();
+
+        Button btnEdit= (Button) dialog.findViewById(R.id.btnEdit);
+        Button btnDelete= (Button) dialog.findViewById(R.id.btnDelete);
+
+        btnEdit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final Dialog diaEdit=new Dialog(MainActivity.this);
+                diaEdit.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                diaEdit.setContentView(R.layout.dia);
+                diaEdit.show();
+
+                final EditText edtName= (EditText) diaEdit.findViewById(R.id.edtName);
+                final EditText edtPhone= (EditText) diaEdit.findViewById(R.id.edtPhone);
+
+                edtName.setText(persons.get(pos).getName());
+                edtPhone.setText(persons.get(pos).getPhone());
+
+                Button btnUpdate= (Button) diaEdit.findViewById(R.id.btnUpdate);
+                btnUpdate.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        persons.get(pos).setName(edtName.getText().toString());
+                        persons.get(pos).setName(edtPhone.getText().toString());
+
+                        DBManager.getInstance().addData(DBManager.TABLE_PERSON,persons.get(pos),"id");
+                        diaEdit.dismiss();
+                        dialog.dismiss();
+                    }
+                });
+            }
+        });
+        btnDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int r=DBManager.getInstance().delete(DBManager.TABLE_PERSON,"id",persons.get(pos).getId()+"");
+                dialog.dismiss();
+                prepareList();
+            }
+        });
 
     }
 

@@ -20,9 +20,13 @@ import java.util.PriorityQueue;
 
 public class AdPerson extends BaseAdapter {
     private ArrayList<MPerson>persons;
+    private IUpdate iUpdate;
 
     public AdPerson(){
         persons=new ArrayList<>();
+    }
+    public void setiUpdate(IUpdate iUpdate){
+        this.iUpdate=iUpdate;
     }
     public void addData(ArrayList<MPerson>persons){
         this.persons=persons;
@@ -44,7 +48,7 @@ public class AdPerson extends BaseAdapter {
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, View convertView, ViewGroup parent) {
         MPerson person=persons.get(position);
         MyViewHolder viewHolder=null;
         if(convertView==null){
@@ -57,10 +61,19 @@ public class AdPerson extends BaseAdapter {
         viewHolder= (MyViewHolder) convertView.getTag();
         viewHolder.tvName.setText(person.getName());
         viewHolder.tvPhone.setText(person.getPhone());
+        convertView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(iUpdate!=null)iUpdate.onUpdate(position);
+            }
+        });
         return convertView;
     }
 
     class MyViewHolder {
         TextView tvName,tvPhone;
+    }
+    public interface IUpdate{
+        void onUpdate(int pos);
     }
 }

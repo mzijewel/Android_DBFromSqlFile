@@ -28,11 +28,11 @@ public class DBManager extends SQLiteOpenHelper {
     public static final String TABLE_DETAILS = "tbl_details";
 
 
-    public static final String KEY_ID = "id";
-    public static final String KEY_FK_ID = "fk_id";
-    public static final String KEY_NAME = "name";
-    public static final String KEY_PHONE = "phone";
-    public static final String KEY_OCCUPATION = "occupation";
+    private static final String KEY_ID = "id";
+    private static final String KEY_FK_ID = "fk_id";
+    private static final String KEY_NAME = "name";
+    private static final String KEY_PHONE = "phone";
+    private static final String KEY_OCCUPATION = "occupation";
 
 
     private static final int DB_VERSION = 1;
@@ -310,5 +310,8 @@ Log.e("DB","f:"+primaryKey+":"+valueOfKey);
         return list;
     }
 
+    public int delete(String table,String searchField,String value){
+        return db.delete(table,searchField+"=?",new String[]{value});
+    }
 
 }
