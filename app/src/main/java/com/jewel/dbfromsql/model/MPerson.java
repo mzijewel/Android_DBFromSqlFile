@@ -8,6 +8,14 @@ public class MPerson {
     private String name;
     private String phone;
 
+    public MPerson() {
+    }
+
+    public MPerson(String name, String phone) {
+        this.name = name;
+        this.phone = phone;
+    }
+
     public String getPhone() {
         return phone;
     }

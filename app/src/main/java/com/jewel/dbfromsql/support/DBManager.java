@@ -31,7 +31,7 @@ public class DBManager extends SQLiteOpenHelper {
     private static final String KEY_PHONE = "phone";
 
 
-    private static final int DB_VERSION = 1;
+    private static final int DB_VERSION = 2;
     private static final String DB_NAME = "mydb";
 
     private static final String CREATE_TABLE_PERSON = DBQuery.init()
@@ -215,42 +215,11 @@ public class DBManager extends SQLiteOpenHelper {
     }
 
 
-    public <T> long addAllData(ArrayList<T> list, String table, String searchFiled, String valueOfField) {
-        long result = -1;
-
-
-        for (T data : list) {
-            ContentValues contentValues = new ContentValues();
-            int id = 0;
-            try {
-                Class myClass = data.getClass();
-                Field[] fields = myClass.getDeclaredFields();
-                for (Field field : fields) {
-                    //for getting access of private field
-                    field.setAccessible(true);
-                    Object value = field.get(data);
-                    String name = field.getName();
-
-                    contentValues.put(name, value != null ? value.toString() : "");
-                    if (name.equalsIgnoreCase("id"))
-                        id = Integer.valueOf(value.toString());
-
-                }
-            } catch (SecurityException ex) {
-            } catch (IllegalArgumentException ex) {
-            } catch (IllegalAccessException ex) {
-            }
-
-            if (isExist(table, searchFiled, valueOfField)) {
-                result = db.update(table, contentValues, KEY_ID + "=?", new String[]{id + ""});
-            } else {
-                result = db.insert(table, null, contentValues);
-
-            }
-
+    public <T> void addAllData(ArrayList<T> list, String table, String primaryKey) {
+        for (T t : list) {
+            addData(table, t, primaryKey);
         }
 
-        return result;
     }
 
     public int delete(String table, String searchField, String value) {

@@ -29,7 +29,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         init();
         prepareList();
 
-
     }
 
 
