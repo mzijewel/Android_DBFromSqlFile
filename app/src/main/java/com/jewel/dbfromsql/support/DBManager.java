@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import com.google.gson.Gson;
 import com.jewel.dbfromsql.R;
@@ -17,6 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 /**
@@ -24,24 +26,18 @@ import java.util.ArrayList;
  */
 public class DBManager extends SQLiteOpenHelper {
     public static final String TABLE_PERSON = "tbl_person";
-
-
     private static final String KEY_ID = "id";
     private static final String KEY_NAME = "name";
     private static final String KEY_PHONE = "phone";
-
-
     private static final int DB_VERSION = 2;
     private static final String DB_NAME = "mydb";
-
     private static final String CREATE_TABLE_PERSON = DBQuery.init()
             .newTable(TABLE_PERSON)
             .addField(KEY_ID, DBQuery.INTEGER_PRI_AUTO)
             .addField(KEY_NAME, DBQuery.TEXT)
             .addField(KEY_PHONE, DBQuery.TEXT)
             .getTable();
-
-
+    private static ArrayList<String> tableQueries = new ArrayList<>();
     private static SQLiteDatabase db;
     private static DBManager instance;
     private Context context;
@@ -59,14 +55,50 @@ public class DBManager extends SQLiteOpenHelper {
         return instance;
     }
 
+    public static void createTable(Object dataModelClass) {
+        String sql = "create table if not exists " + dataModelClass.getClass().getSimpleName() + "(";
+        String dbField = "";
+        Class myClass = dataModelClass.getClass();
+        Field[] fields = myClass.getDeclaredFields();
+        for (Field field : fields) {
+            field.setAccessible(true);
+            String name = field.getName();
+            String type = field.getGenericType().toString();
+
+            //ignore special field while refracting
+            if (name.equalsIgnoreCase("serialVersionUID")
+                    || name.equalsIgnoreCase("$change")
+                    ) {
+
+            } else {
+                dbField += name + " " + getType(name, type) + ",";
+            }
+
+        }
+        Log.e("QUE", sql + " " + dbField.substring(0, dbField.length() - 1) + ")");
+        tableQueries.add(sql + " " + dbField.substring(0, dbField.length() - 1) + ")");
+    }
+
+    private static String getType(String name, String type) {
+        if (name.equals("id")) return "integer primary key autoincrement";
+        if (type.equalsIgnoreCase("int")) {
+            return "integer";
+        }
+        return "text";
+    }
+
     @Override
     public void onCreate(SQLiteDatabase db) {
         //create tables
-        db.execSQL(CREATE_TABLE_PERSON);
+//        db.execSQL(CREATE_TABLE_PERSON);
 
         //load sql code from external file
         String queries = getStringFromFile(R.raw.default_db);
         for (String query : queries.split(";")) {
+            db.execSQL(query);
+        }
+
+        for (String query : tableQueries) {
             db.execSQL(query);
         }
     }
@@ -94,7 +126,6 @@ public class DBManager extends SQLiteOpenHelper {
         }
         return total.toString();
     }
-
 
     private boolean isExist(String table, String searchField, String value) {
         if (value.equals("") || Integer.valueOf(value) <= 0)
@@ -124,7 +155,6 @@ public class DBManager extends SQLiteOpenHelper {
             return cursor.getString(cursor.getColumnIndex(key));
     }
 
-
     public long addData(String tableName, Object dataModelClass, String primaryKey) {
         long result = -1;
         String valueOfKey = "";
@@ -140,6 +170,7 @@ public class DBManager extends SQLiteOpenHelper {
                 String name = field.getName();
                 field.setAccessible(true);
                 Object value = field.get(dataModelClass);
+
 
                 //ignore special field while refracting
                 if (name.equalsIgnoreCase("serialVersionUID")
