@@ -82,7 +82,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         persons.get(pos).setName(edtName.getText().toString());
                         persons.get(pos).setPhone(edtPhone.getText().toString());
 
-                        DBManager.getInstance().addData(MPerson.class.getSimpleName(), persons.get(pos), "id");
+                        DBManager.getInstance().addData(persons.get(pos), "id");
                         diaEdit.dismiss();
                         dialog.dismiss();
                         prepareList();
@@ -93,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DBManager.getInstance().delete(MPerson.class.getSimpleName(), "id", persons.get(pos).getId() + "");
+                DBManager.getInstance().delete(MPerson.class,"id", persons.get(pos).getId() + "");
                 dialog.dismiss();
                 prepareList();
             }
@@ -102,7 +102,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void prepareList() {
-        persons = DBManager.getInstance().getData(MPerson.class.getSimpleName(), new MPerson());
+        persons = DBManager.getInstance().getData(new MPerson());
         adapter.addData(persons);
 
     }
@@ -111,7 +111,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         MPerson person = new MPerson();
         person.setName(edtName.getText().toString());
         person.setPhone(edtPhone.getText().toString());
-        DBManager.getInstance().addData(MPerson.class.getSimpleName(), person, "id");
+        person.setRoll(person.getName().length());
+        DBManager.getInstance().addData(person, "id");
 
         edtName.setText("");
         edtPhone.setText("");

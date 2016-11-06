@@ -18,26 +18,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 /**
  * Created by Jewel on 11/9/2015.
  */
 public class DBManager extends SQLiteOpenHelper {
-    public static final String TABLE_PERSON = "tbl_person";
-    private static final String KEY_ID = "id";
-    private static final String KEY_NAME = "name";
-    private static final String KEY_PHONE = "phone";
     private static final int DB_VERSION = 2;
-    private static final String DB_NAME = "mydb";
-    private static final String CREATE_TABLE_PERSON = DBQuery.init()
-            .newTable(TABLE_PERSON)
-            .addField(KEY_ID, DBQuery.INTEGER_PRI_AUTO)
-            .addField(KEY_NAME, DBQuery.TEXT)
-            .addField(KEY_PHONE, DBQuery.TEXT)
-            .getTable();
+    private static final String DB_NAME = MyApp.getContext().getClass().getSimpleName();
     private static ArrayList<String> tableQueries = new ArrayList<>();
+    private static ArrayList<String> tables = new ArrayList<>();
     private static SQLiteDatabase db;
     private static DBManager instance;
     private Context context;
@@ -56,8 +46,10 @@ public class DBManager extends SQLiteOpenHelper {
     }
 
     public static void createTable(Object dataModelClass) {
-        String sql = "create table if not exists " + dataModelClass.getClass().getSimpleName() + "(";
-        String dbField = "";
+        String dbField = "", table = dataModelClass.getClass().getSimpleName();
+        String sql = "create table if not exists " + table + "(";
+
+        Log.e("DB",DB_NAME+":"+table);
         Class myClass = dataModelClass.getClass();
         Field[] fields = myClass.getDeclaredFields();
         for (Field field : fields) {
@@ -75,8 +67,10 @@ public class DBManager extends SQLiteOpenHelper {
             }
 
         }
-        Log.e("QUE", sql + " " + dbField.substring(0, dbField.length() - 1) + ")");
-        tableQueries.add(sql + " " + dbField.substring(0, dbField.length() - 1) + ")");
+        if (!tableQueries.contains(sql))
+            tableQueries.add(sql + " " + dbField.substring(0, dbField.length() - 1) + ")");
+        if (!tables.contains(table))
+            tables.add(table);
     }
 
     private static String getType(String name, String type) {
@@ -89,8 +83,6 @@ public class DBManager extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        //create tables
-//        db.execSQL(CREATE_TABLE_PERSON);
 
         //load sql code from external file
         String queries = getStringFromFile(R.raw.default_db);
@@ -98,6 +90,7 @@ public class DBManager extends SQLiteOpenHelper {
             db.execSQL(query);
         }
 
+        //create tables
         for (String query : tableQueries) {
             db.execSQL(query);
         }
@@ -105,11 +98,9 @@ public class DBManager extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        //delete tables after upgrading
-        db.execSQL(DBQuery.QUERY_DROP + TABLE_PERSON);
+        //upgrade table
+//        db.execSQL("ALTER TABLE tableName ADD COLUMN roll integer");
 
-        //create tables after upgrading
-        onCreate(db);
     }
 
     private String getStringFromFile(int fileName) {
@@ -155,9 +146,10 @@ public class DBManager extends SQLiteOpenHelper {
             return cursor.getString(cursor.getColumnIndex(key));
     }
 
-    public long addData(String tableName, Object dataModelClass, String primaryKey) {
+    public long addData(Object dataModelClass, String primaryKey) {
         long result = -1;
-        String valueOfKey = "";
+        String valueOfKey = "",tableName="";
+        tableName=dataModelClass.getClass().getSimpleName();
         try {
             Class myClass = dataModelClass.getClass();
             Field[] fields = myClass.getDeclaredFields();
@@ -202,9 +194,8 @@ public class DBManager extends SQLiteOpenHelper {
         return result;
     }
 
-    public <T> ArrayList<T> getData(String tableName, Object dataModelClass) {
-
-        String sql = "select * from " + tableName;
+    public <T> ArrayList<T> getData(Object dataModelClass) {
+        String sql = "select * from " + dataModelClass.getClass().getSimpleName();
         Cursor cursor = db.rawQuery(sql, null);
         JSONObject jsonObject = new JSONObject();
         final ArrayList<JSONObject> data = new ArrayList<JSONObject>();
@@ -246,15 +237,15 @@ public class DBManager extends SQLiteOpenHelper {
     }
 
 
-    public <T> void addAllData(ArrayList<T> list, String table, String primaryKey) {
+    public <T> void addAllData(ArrayList<T> list, String primaryKey) {
         for (T t : list) {
-            addData(table, t, primaryKey);
+            addData(t, primaryKey);
         }
 
     }
 
-    public int delete(String table, String searchField, String value) {
-        return db.delete(table, searchField + "=?", new String[]{value});
+    public int delete(Class modelClass, String searchField, String value) {
+        return db.delete(modelClass.getSimpleName(), searchField + "=?", new String[]{value});
     }
 
 }
