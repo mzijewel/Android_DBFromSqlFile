@@ -194,8 +194,8 @@ public class DBManager extends SQLiteOpenHelper {
         return result;
     }
 
-    public <T> ArrayList<T> getData(Object dataModelClass) {
-        String sql = "select * from " + dataModelClass.getClass().getSimpleName();
+    public <T> ArrayList<T> getData(Class classOfT) {
+        String sql = "select * from " + classOfT.getSimpleName();
         Cursor cursor = db.rawQuery(sql, null);
         JSONObject jsonObject = new JSONObject();
         final ArrayList<JSONObject> data = new ArrayList<JSONObject>();
@@ -204,8 +204,7 @@ public class DBManager extends SQLiteOpenHelper {
             do {
                 jsonObject = new JSONObject();
                 try {
-                    Class myClass = dataModelClass.getClass();
-                    Field[] fields = myClass.getDeclaredFields();
+                    Field[] fields = classOfT.getDeclaredFields();
 
                     for (Field field : fields) {
                         //for getting access of private field
@@ -228,8 +227,7 @@ public class DBManager extends SQLiteOpenHelper {
         Gson gson = new Gson();
         ArrayList<T> output = new ArrayList<T>();
         for (int i = 0; i < data.size(); i++) {
-            dataModelClass = gson.fromJson(data.get(i).toString(), dataModelClass.getClass());
-            output.add((T) dataModelClass);
+            output.add((T) gson.fromJson(data.get(i).toString(), classOfT));
         }
 
 

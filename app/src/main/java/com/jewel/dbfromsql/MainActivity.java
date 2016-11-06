@@ -102,7 +102,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void prepareList() {
-        persons = DBManager.getInstance().getData(new MPerson());
+        persons = DBManager.getInstance().getData(MPerson.class);
         adapter.addData(persons);
 
     }
