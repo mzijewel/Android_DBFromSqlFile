@@ -12,6 +12,7 @@ import android.widget.ListView;
 import com.jewel.dbfromsql.adapter.AdPerson;
 import com.jewel.dbfromsql.model.MPerson;
 import com.jewel.dbfromsql.support.DBManager;
+import com.jewel.dbfromsql.support.Search;
 
 import java.util.ArrayList;
 
@@ -102,7 +103,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void prepareList() {
-        persons = DBManager.getInstance().getData(MPerson.class);
+        persons = DBManager.getInstance().getData(MPerson.class,new Search("name","1","="));
         adapter.addData(persons);
 
     }

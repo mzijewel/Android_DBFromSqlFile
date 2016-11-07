@@ -49,7 +49,7 @@ public class DBManager extends SQLiteOpenHelper {
         String dbField = "", table = dataModelClass.getClass().getSimpleName();
         String sql = "create table if not exists " + table + "(";
 
-        Log.e("DB",DB_NAME+":"+table);
+        Log.e("DB", DB_NAME + ":" + table);
         Class myClass = dataModelClass.getClass();
         Field[] fields = myClass.getDeclaredFields();
         for (Field field : fields) {
@@ -148,8 +148,8 @@ public class DBManager extends SQLiteOpenHelper {
 
     public long addData(Object dataModelClass, String primaryKey) {
         long result = -1;
-        String valueOfKey = "",tableName="";
-        tableName=dataModelClass.getClass().getSimpleName();
+        String valueOfKey = "", tableName = "";
+        tableName = dataModelClass.getClass().getSimpleName();
         try {
             Class myClass = dataModelClass.getClass();
             Field[] fields = myClass.getDeclaredFields();
@@ -234,6 +234,52 @@ public class DBManager extends SQLiteOpenHelper {
         return output;
     }
 
+    public <T> ArrayList<T> getData(Class classOfT, Search... searches) {
+        String searchQ = "";
+        for (int i = 0; i < searches.length; i++) {
+                searchQ += searches[i].getField() + searches[i].getOperation() + "'" + searches[i].getValue() + "'";
+            if (searches.length>1 && i!=searches.length-1)
+                searchQ+=" OR ";
+        }
+        String sql = "select * from " + classOfT.getSimpleName() + " where " + searchQ;
+        Cursor cursor = db.rawQuery(sql, null);
+        JSONObject jsonObject = new JSONObject();
+        final ArrayList<JSONObject> data = new ArrayList<JSONObject>();
+
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                jsonObject = new JSONObject();
+                try {
+                    Field[] fields = classOfT.getDeclaredFields();
+
+                    for (Field field : fields) {
+                        //for getting access of private field
+                        field.setAccessible(true);
+                        String name = field.getName();
+
+                        jsonObject.put(name, getStringValue(cursor, name));
+
+                    }
+                    data.add(jsonObject);
+
+                } catch (SecurityException ex) {
+                } catch (IllegalArgumentException ex) {
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            } while (cursor.moveToNext());
+        }
+
+        Gson gson = new Gson();
+        ArrayList<T> output = new ArrayList<T>();
+        for (int i = 0; i < data.size(); i++) {
+            output.add((T) gson.fromJson(data.get(i).toString(), classOfT));
+        }
+
+
+        return output;
+    }
+
 
     public <T> void addAllData(ArrayList<T> list, String primaryKey) {
         for (T t : list) {
@@ -246,4 +292,6 @@ public class DBManager extends SQLiteOpenHelper {
         return db.delete(modelClass.getSimpleName(), searchField + "=?", new String[]{value});
     }
 
+
 }
+
