@@ -1,4 +1,4 @@
-package com.jewel.dbfromsql.model;
+package com.jewel.dbmanager.model;
 
 /**
  * Created by Jewel on 5/12/2016.

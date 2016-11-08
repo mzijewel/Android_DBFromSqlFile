@@ -1,4 +1,4 @@
-package com.jewel.dbfromsql;
+package com.jewel.dbmanager;
 
 import android.app.Dialog;
 import android.os.Bundle;
@@ -9,10 +9,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
-import com.jewel.dbfromsql.adapter.AdPerson;
-import com.jewel.dbfromsql.model.MPerson;
-import com.jewel.dbfromsql.support.DBManager;
-import com.jewel.dbfromsql.support.Search;
+import com.jewel.dbmanager.adapter.AdPerson;
+import com.jewel.dbmanager.model.MPerson;
+import com.jewel.dbmanager.support.DBManager;
 
 import java.util.ArrayList;
 
@@ -57,30 +56,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
     }
-    private void openDialog(final int pos){
-        final Dialog dialog=new Dialog(this);
+
+    private void openDialog(final int pos) {
+        final Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.dia);
         dialog.show();
 
-        Button btnEdit= (Button) dialog.findViewById(R.id.btnEdit);
-        Button btnDelete= (Button) dialog.findViewById(R.id.btnDelete);
+        Button btnEdit = (Button) dialog.findViewById(R.id.btnEdit);
+        Button btnDelete = (Button) dialog.findViewById(R.id.btnDelete);
 
         btnEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final Dialog diaEdit=new Dialog(MainActivity.this);
+                final Dialog diaEdit = new Dialog(MainActivity.this);
                 diaEdit.requestWindowFeature(Window.FEATURE_NO_TITLE);
                 diaEdit.setContentView(R.layout.dia_edit);
                 diaEdit.show();
 
-                final EditText edtName= (EditText) diaEdit.findViewById(R.id.edtName);
-                final EditText edtPhone= (EditText) diaEdit.findViewById(R.id.edtPhone);
+                final EditText edtName = (EditText) diaEdit.findViewById(R.id.edtName);
+                final EditText edtPhone = (EditText) diaEdit.findViewById(R.id.edtPhone);
 
                 edtName.setText(persons.get(pos).getName());
                 edtPhone.setText(persons.get(pos).getPhone());
 
-                Button btnUpdate= (Button) diaEdit.findViewById(R.id.btnUpdate);
+                Button btnUpdate = (Button) diaEdit.findViewById(R.id.btnUpdate);
                 btnUpdate.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -98,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DBManager.getInstance().delete(MPerson.class,"id", persons.get(pos).getId() + "");
+                DBManager.getInstance().delete(MPerson.class, "id", persons.get(pos).getId() + "");
                 dialog.dismiss();
                 prepareList();
             }
@@ -107,7 +107,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void prepareList() {
-        persons = DBManager.getInstance().getData(MPerson.class,"select * from "+MPerson.class.getSimpleName()+" where id!='2'");
+        persons = DBManager.getInstance().getData(MPerson.class, "select * from " + MPerson.class.getSimpleName() + " where id!='2'");
         adapter.addData(persons);
 
     }
