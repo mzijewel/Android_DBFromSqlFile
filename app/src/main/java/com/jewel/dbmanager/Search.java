@@ -1,4 +1,4 @@
-package com.jewel.dbmanager.support;
+package com.jewel.dbmanager;
 
 /**
  * Created by Jewel on 11/7/2016.

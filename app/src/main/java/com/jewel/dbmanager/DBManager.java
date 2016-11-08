@@ -1,4 +1,4 @@
-package com.jewel.dbmanager.support;
+package com.jewel.dbmanager;
 
 import android.content.ContentValues;
 import android.content.Context;

@@ -11,7 +11,6 @@ import android.widget.ListView;
 
 import com.jewel.dbmanager.adapter.AdPerson;
 import com.jewel.dbmanager.model.MPerson;
-import com.jewel.dbmanager.support.DBManager;
 
 import java.util.ArrayList;
 
