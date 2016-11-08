@@ -5,12 +5,20 @@ package com.jewel.dbfromsql.support;
  */
 
 public class Search {
-    private String field, value, operation;
+    public static final String EQUAL="=";
+    public static final String NOT_EQUAL="!=";
+    public static final String GREATER=">";
+    public static final String LESS="<";
+    public static final String AND=" AND ";
+    public static final String OR=" OR ";
 
-    public Search(String field, String value, String operation) {
+
+    private String field, value, operator;
+
+    public Search(String field, String value, String operator) {
         this.field = field;
         this.value = value;
-        this.operation = operation;
+        this.operator = operator;
     }
 
     public String getField() {
@@ -29,11 +37,11 @@ public class Search {
         this.value = value;
     }
 
-    public String getOperation() {
-        return operation;
+    public String getOperator() {
+        return operator;
     }
 
-    public void setOperation(String operation) {
-        this.operation = operation;
+    public void setOperator(String operator) {
+        this.operator = operator;
     }
 }

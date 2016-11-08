@@ -27,6 +27,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        DBManager.init(this);
+        DBManager.createTable(MPerson.class);
+
         init();
         prepareList();
 
@@ -41,7 +45,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnSave.setOnClickListener(this);
 
         list = (ListView) findViewById(R.id.list);
-        adapter = new AdPerson();
+        adapter = new AdPerson(this);
 
         persons = new ArrayList<>();
         list.setAdapter(adapter);
@@ -103,7 +107,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void prepareList() {
-        persons = DBManager.getInstance().getData(MPerson.class,new Search("name","1","="));
+        persons = DBManager.getInstance().getData(MPerson.class,"select * from "+MPerson.class.getSimpleName()+" where id!='2'");
         adapter.addData(persons);
 
     }

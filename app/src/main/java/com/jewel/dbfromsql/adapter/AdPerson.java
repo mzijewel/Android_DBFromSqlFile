@@ -1,6 +1,6 @@
 package com.jewel.dbfromsql.adapter;
 
-import android.util.Log;
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,10 +9,8 @@ import android.widget.TextView;
 
 import com.jewel.dbfromsql.R;
 import com.jewel.dbfromsql.model.MPerson;
-import com.jewel.dbfromsql.support.MyApp;
 
 import java.util.ArrayList;
-import java.util.PriorityQueue;
 
 /**
  * Created by Jewel on 10/30/2016.
@@ -21,9 +19,11 @@ import java.util.PriorityQueue;
 public class AdPerson extends BaseAdapter {
     private ArrayList<MPerson>persons;
     private IUpdate iUpdate;
+    private Context context;
 
-    public AdPerson(){
+    public AdPerson(Context context){
         persons=new ArrayList<>();
+        this.context=context;
     }
     public void setiUpdate(IUpdate iUpdate){
         this.iUpdate=iUpdate;
@@ -52,7 +52,7 @@ public class AdPerson extends BaseAdapter {
         MPerson person=persons.get(position);
         MyViewHolder viewHolder=null;
         if(convertView==null){
-            convertView= LayoutInflater.from(MyApp.getContext()).inflate(R.layout.row_person,parent,false);
+            convertView= LayoutInflater.from(context).inflate(R.layout.row_person,parent,false);
             viewHolder=new MyViewHolder();
             viewHolder.tvName= (TextView) convertView.findViewById(R.id.tvName);
             viewHolder.tvPhone= (TextView) convertView.findViewById(R.id.tvPhone);
