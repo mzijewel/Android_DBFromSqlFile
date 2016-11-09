@@ -106,7 +106,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void prepareList() {
-        persons = DBManager.getInstance().getData(MPerson.class, "select * from " + MPerson.class.getSimpleName() + " where id!='2'");
+        persons = DBManager.getInstance().getData(MPerson.class, new Search("name","4",Search.EQUAL_LESS),new Search("name","2",Search.GREATER_EQUAL,Search.OR),new Search("name","1",Search.GREATER_EQUAL));
         adapter.addData(persons);
 
     }

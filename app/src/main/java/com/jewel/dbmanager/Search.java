@@ -6,6 +6,8 @@ package com.jewel.dbmanager;
 
 public class Search {
     public static final String EQUAL="=";
+    public static final String GREATER_EQUAL=">=";
+    public static final String EQUAL_LESS="<=";
     public static final String NOT_EQUAL="!=";
     public static final String GREATER=">";
     public static final String LESS="<";
@@ -13,12 +15,26 @@ public class Search {
     public static final String OR=" OR ";
 
 
-    private String field, value, operator;
+    private String field, value, operator,nextOperator;
 
     public Search(String field, String value, String operator) {
         this.field = field;
         this.value = value;
         this.operator = operator;
+    }
+    public Search(String field, String value, String operator,String nextOperator) {
+        this.field = field;
+        this.value = value;
+        this.operator = operator;
+        this.nextOperator= nextOperator;
+    }
+
+    public String getNextOperator() {
+        return nextOperator;
+    }
+
+    public void setNextOperator(String nextOperator) {
+        this.nextOperator = nextOperator;
     }
 
     public String getField() {

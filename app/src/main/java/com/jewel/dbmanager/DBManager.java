@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import com.google.gson.Gson;
 
@@ -22,9 +23,8 @@ import java.util.ArrayList;
  * Created by Jewel on 11/9/2015.
  */
 public class DBManager extends SQLiteOpenHelper {
-    private static Context context;
-
     private static final int DB_VERSION = 1;
+    private static Context context;
     private static String DB_NAME = "MyDB";
     private static ArrayList<String> tableQueries = new ArrayList<>();
     private static ArrayList<String> tables = new ArrayList<>();
@@ -32,15 +32,15 @@ public class DBManager extends SQLiteOpenHelper {
     private static DBManager instance;
 
 
-
-    public static void init(Context mContext){
-        context=mContext;
-        DB_NAME = context.getPackageName().substring(context.getPackageName().lastIndexOf("."));
-    }
     private DBManager() {
         super(context, DB_NAME, null, DB_VERSION);
         db = this.getWritableDatabase();
 
+    }
+
+    public static void init(Context mContext) {
+        context = mContext;
+        DB_NAME = context.getPackageName().substring(context.getPackageName().lastIndexOf("."));
     }
 
     public static DBManager getInstance() {
@@ -172,9 +172,8 @@ public class DBManager extends SQLiteOpenHelper {
                         ) {
 
                 } else {
-                    if (name.equals(primaryKey)&& Integer.parseInt(value+"")==0){
-                    }
-                    else {
+                    if (name.equals(primaryKey) && Integer.parseInt(value + "") == 0) {
+                    } else {
                         contentValues.put(name, value + "");
                     }
                     if (name.equalsIgnoreCase(primaryKey)) {
@@ -242,11 +241,17 @@ public class DBManager extends SQLiteOpenHelper {
     public <T> ArrayList<T> getData(Class classOfT, Search... searches) {
         String searchQ = "";
         for (int i = 0; i < searches.length; i++) {
-                searchQ += searches[i].getField() + searches[i].getOperator() + "'" + searches[i].getValue() + "'";
-            if (searches.length>1 && i!=searches.length-1)
-                searchQ+=" OR ";
+            searchQ += searches[i].getField() + searches[i].getOperator() + "'" + searches[i].getValue() + "'";
+            if (i != searches.length - 1) {
+                if (searches[i].getNextOperator() != null && !searches[i].getNextOperator().equals(""))
+                    searchQ += searches[i].getNextOperator();
+                else
+                    searchQ += Search.AND;
+            }
+
         }
         String sql = "select * from " + classOfT.getSimpleName() + " where " + searchQ;
+        Log.e("DB",sql);
         Cursor cursor = db.rawQuery(sql, null);
         JSONObject jsonObject = new JSONObject();
         final ArrayList<JSONObject> data = new ArrayList<JSONObject>();
