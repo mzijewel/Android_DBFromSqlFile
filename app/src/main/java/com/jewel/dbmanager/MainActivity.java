@@ -26,8 +26,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        DBManager.init(this);
-        DBManager.createTable(MPerson.class);
+        DBManager.init(this)
+                .createTable(MPerson.class)
+                .build();
 
         init();
         prepareList();

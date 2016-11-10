@@ -22,25 +22,24 @@ import java.util.ArrayList;
 /**
  * Created by Jewel on 11/9/2015.
  */
-public class DBManager extends SQLiteOpenHelper {
+public class DBManager {
     private static final int DB_VERSION = 1;
     private static Context context;
     private static String DB_NAME = "MyDB";
     private static ArrayList<String> tableQueries = new ArrayList<>();
     private static ArrayList<String> tables = new ArrayList<>();
-    private static SQLiteDatabase db;
+    private static MyDB myDB;
     private static DBManager instance;
 
 
     private DBManager() {
-        super(context, DB_NAME, null, DB_VERSION);
-        db = this.getWritableDatabase();
 
     }
 
-    public static void init(Context mContext) {
+    public static DBManager init(Context mContext) {
         context = mContext;
         DB_NAME = context.getPackageName().substring(context.getPackageName().lastIndexOf("."));
+        return getInstance();
     }
 
     public static DBManager getInstance() {
@@ -49,7 +48,19 @@ public class DBManager extends SQLiteOpenHelper {
         return instance;
     }
 
-    public static void createTable(Class classOfT) {
+    private static String getType(String name, String type) {
+        if (name.equals("id")) return "integer primary key autoincrement";
+        if (type.equalsIgnoreCase("int")) {
+            return "integer";
+        }
+        return "text";
+    }
+
+    public void build() {
+        myDB = new MyDB(context);
+    }
+
+    public DBManager createTable(Class classOfT) {
         String dbField = "", table = classOfT.getSimpleName();
         String sql = "create table if not exists " + table + "(";
 
@@ -73,36 +84,8 @@ public class DBManager extends SQLiteOpenHelper {
             tableQueries.add(sql + " " + dbField.substring(0, dbField.length() - 1) + ")");
         if (!tables.contains(table))
             tables.add(table);
-    }
 
-    private static String getType(String name, String type) {
-        if (name.equals("id")) return "integer primary key autoincrement";
-        if (type.equalsIgnoreCase("int")) {
-            return "integer";
-        }
-        return "text";
-    }
-
-    @Override
-    public void onCreate(SQLiteDatabase db) {
-
-        //load sql code from external file
-//        String queries = getStringFromFile(R.raw.default_db);
-//        for (String query : queries.split(";")) {
-//            db.execSQL(query);
-//        }
-
-        //create tables
-        for (String query : tableQueries) {
-            db.execSQL(query);
-        }
-    }
-
-    @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        //upgrade table
-//        db.execSQL("ALTER TABLE tableName ADD COLUMN roll integer");
-
+        return instance;
     }
 
     private String getStringFromFile(int fileName) {
@@ -125,7 +108,7 @@ public class DBManager extends SQLiteOpenHelper {
             return false;
         Cursor cursor = null;
         try {
-            cursor = db.rawQuery("select * from " + table + " where " + searchField + "='" + value + "'", null);
+            cursor = myDB.db.rawQuery("select * from " + table + " where " + searchField + "='" + value + "'", null);
             if (cursor != null && cursor.getCount() > 0)
                 return true;
         } catch (Exception e) {
@@ -185,9 +168,9 @@ public class DBManager extends SQLiteOpenHelper {
 
             }
             if (!isExist(tableName, primaryKey, valueOfKey)) {
-                result = db.insert(tableName, null, contentValues);
+                result = myDB.db.insert(tableName, null, contentValues);
             } else {
-                result = db.update(tableName, contentValues, primaryKey + "=?", new String[]{valueOfKey + ""});
+                result = myDB.db.update(tableName, contentValues, primaryKey + "=?", new String[]{valueOfKey + ""});
             }
 
 
@@ -200,7 +183,7 @@ public class DBManager extends SQLiteOpenHelper {
 
     public <T> ArrayList<T> getData(Class classOfT) {
         String sql = "select * from " + classOfT.getSimpleName();
-        Cursor cursor = db.rawQuery(sql, null);
+        Cursor cursor = myDB.db.rawQuery(sql, null);
         JSONObject jsonObject = new JSONObject();
         final ArrayList<JSONObject> data = new ArrayList<JSONObject>();
 
@@ -252,7 +235,7 @@ public class DBManager extends SQLiteOpenHelper {
         }
         String sql = "select * from " + classOfT.getSimpleName() + " where " + searchQ;
         Log.e("DB",sql);
-        Cursor cursor = db.rawQuery(sql, null);
+        Cursor cursor = myDB.db.rawQuery(sql, null);
         JSONObject jsonObject = new JSONObject();
         final ArrayList<JSONObject> data = new ArrayList<JSONObject>();
 
@@ -292,7 +275,7 @@ public class DBManager extends SQLiteOpenHelper {
 
     public <T> ArrayList<T> getData(Class classOfT, String sql) {
 
-        Cursor cursor = db.rawQuery(sql, null);
+        Cursor cursor = myDB.db.rawQuery(sql, null);
         JSONObject jsonObject = new JSONObject();
         final ArrayList<JSONObject> data = new ArrayList<JSONObject>();
 
@@ -338,7 +321,38 @@ public class DBManager extends SQLiteOpenHelper {
     }
 
     public int delete(Class modelClass, String searchField, String value) {
-        return db.delete(modelClass.getSimpleName(), searchField + "=?", new String[]{value});
+        return myDB.db.delete(modelClass.getSimpleName(), searchField + "=?", new String[]{value});
+    }
+
+    public class MyDB extends SQLiteOpenHelper {
+        public SQLiteDatabase db;
+
+        public MyDB(Context context) {
+            super(context, DB_NAME, null, DB_VERSION);
+            db = this.getWritableDatabase();
+        }
+
+        @Override
+        public void onCreate(SQLiteDatabase db) {
+
+            //load sql code from external file
+//        String queries = getStringFromFile(R.raw.default_db);
+//        for (String query : queries.split(";")) {
+//            myDB.execSQL(query);
+//        }
+
+            //create tables
+            for (String query : tableQueries) {
+                db.execSQL(query);
+            }
+        }
+
+        @Override
+        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+            //upgrade table
+//        myDB.execSQL("ALTER TABLE tableName ADD COLUMN roll integer");
+
+        }
     }
 
 
