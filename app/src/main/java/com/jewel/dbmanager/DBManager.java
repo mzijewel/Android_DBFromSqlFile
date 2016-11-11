@@ -320,9 +320,31 @@ public class DBManager {
 
     }
 
-    public int delete(Class modelClass, String searchField, String value) {
-        return myDB.db.delete(modelClass.getSimpleName(), searchField + "=?", new String[]{value});
+    public int delete(Class modelClass, Search... searches) {
+        String fields = "";
+        String[] values = new String[searches.length];
+        for (int i = 0; i < searches.length; i++) {
+            Search search = searches[i];
+            fields += search.getField() + search.getOperator() + "?";
+//            if (search.getNextOperator() != null && !search.getNextOperator().equals(""))
+//                fields += search.getNextOperator();
+
+            if (i != searches.length - 1) {
+                if (searches[i].getNextOperator() != null && !searches[i].getNextOperator().equals(""))
+                    fields += search.getNextOperator();
+                else
+                    fields += Search.AND;
+            }
+
+            values[i] = search.getValue();
+        }
+        return myDB.db.delete(modelClass.getSimpleName(), fields, values);
     }
+
+    public void rawQuery(String sql) {
+        myDB.db.rawQuery(sql, null);
+    }
+
 
     public class MyDB extends SQLiteOpenHelper {
         public SQLiteDatabase db;

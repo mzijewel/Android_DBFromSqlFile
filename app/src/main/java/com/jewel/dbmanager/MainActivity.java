@@ -98,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DBManager.getInstance().delete(MPerson.class, "id", persons.get(pos).getId() + "");
+                DBManager.getInstance().delete(MPerson.class, new Search("name", "a", Search.EQUAL, Search.AND), new Search("phone", "1", Search.EQUAL));
                 dialog.dismiss();
                 prepareList();
             }
@@ -107,7 +107,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void prepareList() {
-        persons = DBManager.getInstance().getData(MPerson.class, new Search("name","4",Search.EQUAL_LESS),new Search("name","2",Search.GREATER_EQUAL,Search.OR),new Search("name","1",Search.GREATER_EQUAL));
+        persons = DBManager.getInstance().getData(MPerson.class, new Search("name", "4", Search.EQUAL_LESS), new Search("name", "2", Search.GREATER_EQUAL, Search.OR), new Search("name", "1", Search.GREATER_EQUAL));
         adapter.addData(persons);
 
     }
