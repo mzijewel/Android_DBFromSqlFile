@@ -23,13 +23,17 @@ import java.util.ArrayList;
  * Created by Jewel on 11/9/2015.
  */
 public class DBManager {
-    private static final int DB_VERSION = 1;
+    private static int DB_VERSION = 1;
     private static Context context;
     private static String DB_NAME = "MyDB";
     private static ArrayList<String> tableQueries = new ArrayList<>();
-    private static ArrayList<String> tables = new ArrayList<>();
+    private static ArrayList<String> alterTables = new ArrayList<>();
     private static MyDB myDB;
     private static DBManager instance;
+
+    private ArrayList<String> tables;
+    private ArrayList<String> fields;
+    private ArrayList<String> types;
 
 
     private DBManager() {
@@ -42,14 +46,21 @@ public class DBManager {
         return getInstance();
     }
 
+    public static DBManager init(Context mContext, int version) {
+        context = mContext;
+        DB_NAME = context.getPackageName().substring(context.getPackageName().lastIndexOf("."));
+        DB_VERSION = version;
+        return getInstance();
+    }
+
     public static DBManager getInstance() {
         if (instance == null)
             instance = new DBManager();
         return instance;
     }
 
-    private static String getType(String name, String type) {
-        if (name.equals("id")) return "integer primary key autoincrement";
+    private static String getType(String type, DB.KEY key) {
+        if (key != null && key == DB.KEY.PRIMARY) return "integer primary key autoincrement";
         if (type.equalsIgnoreCase("int")) {
             return "integer";
         }
@@ -67,19 +78,24 @@ public class DBManager {
         Field[] fields = classOfT.getDeclaredFields();
         for (Field field : fields) {
             field.setAccessible(true);
+            DB.KEY dbKey = null;
             String name = field.getName();
             String type = field.getGenericType().toString();
-
+            DB dbAnn = field.getAnnotation(DB.class);
+            if (dbAnn != null)
+                dbKey = dbAnn.key();
             //ignore special field while refracting
             if (name.equalsIgnoreCase("serialVersionUID")
                     || name.equalsIgnoreCase("$change")
                     ) {
 
             } else {
-                dbField += name + " " + getType(name, type) + ",";
+                dbField += name + " " + getType(type, dbKey) + ",";
             }
 
         }
+        if (tables == null) tables = new ArrayList<>();
+        if (tableQueries == null) tableQueries = new ArrayList<>();
         if (!tableQueries.contains(sql))
             tableQueries.add(sql + " " + dbField.substring(0, dbField.length() - 1) + ")");
         if (!tables.contains(table))
@@ -131,7 +147,8 @@ public class DBManager {
             return cursor.getString(cursor.getColumnIndex(key));
     }
 
-    public long addData(Object dataModelClass, String primaryKey) {
+    public long addData(Object dataModelClass) {
+        String primaryKey = "id";
         long result = -1;
         String valueOfKey = "", tableName = "";
         tableName = dataModelClass.getClass().getSimpleName();
@@ -147,6 +164,9 @@ public class DBManager {
                 String name = field.getName();
                 field.setAccessible(true);
                 Object value = field.get(dataModelClass);
+                DB dbKey = field.getAnnotation(DB.class);
+                if (dbKey != null)
+                    primaryKey = name;
 
 
                 //ignore special field while refracting
@@ -234,7 +254,7 @@ public class DBManager {
 
         }
         String sql = "select * from " + classOfT.getSimpleName() + " where " + searchQ;
-        Log.e("DB",sql);
+        Log.e("DB", sql);
         Cursor cursor = myDB.db.rawQuery(sql, null);
         JSONObject jsonObject = new JSONObject();
         final ArrayList<JSONObject> data = new ArrayList<JSONObject>();
@@ -313,9 +333,9 @@ public class DBManager {
         return output;
     }
 
-    public <T> void addData(ArrayList<T> list, String primaryKey) {
+    public <T> void addData(ArrayList<T> list) {
         for (T t : list) {
-            addData(t, primaryKey);
+            addData(t);
         }
 
     }
@@ -345,6 +365,17 @@ public class DBManager {
         myDB.db.rawQuery(sql, null);
     }
 
+    public DBManager addNewColumn(Class table, String field, String type) {
+        if (alterTables == null) alterTables = new ArrayList<>();
+        if (fields == null) fields = new ArrayList<>();
+        if (types == null) types = new ArrayList<>();
+
+        alterTables.add(table.getSimpleName());
+        fields.add(field);
+        types.add(type);
+
+        return instance;
+    }
 
     public class MyDB extends SQLiteOpenHelper {
         public SQLiteDatabase db;
@@ -372,7 +403,14 @@ public class DBManager {
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             //upgrade table
-//        myDB.execSQL("ALTER TABLE tableName ADD COLUMN roll integer");
+            try {
+                if (alterTables != null && alterTables.size() > 0)
+                    for (int i = 0; i < alterTables.size(); i++)
+                        db.execSQL("ALTER TABLE " + alterTables.get(i) + " ADD COLUMN " + fields.get(i) + " " + types.get(i));
+
+            } catch (Exception e) {
+
+            }
 
         }
     }

@@ -3,6 +3,7 @@ package com.jewel.dbmanager;
 import android.app.Dialog;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
@@ -26,12 +27,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        DBManager.init(this)
+        DBManager.init(this, 3)
                 .createTable(MPerson.class)
+                .addNewColumn(MPerson.class, "age", "integer")
+                .addNewColumn(MPerson.class, "des", "text")
                 .build();
 
+        DBManager.getInstance().addData(new MPerson("Mamta", "01989", 1252, 28, "wife"));
         init();
         prepareList();
+        persons = DBManager.getInstance().getData(MPerson.class);
+        Log.e("TE", "s:" + persons.size());
 
     }
 
@@ -87,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         persons.get(pos).setName(edtName.getText().toString());
                         persons.get(pos).setPhone(edtPhone.getText().toString());
 
-                        DBManager.getInstance().addData(persons.get(pos), "id");
+                        DBManager.getInstance().addData(persons.get(pos));
                         diaEdit.dismiss();
                         dialog.dismiss();
                         prepareList();
@@ -98,7 +104,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DBManager.getInstance().delete(MPerson.class, new Search("name", "a", Search.EQUAL, Search.AND), new Search("phone", "1", Search.EQUAL));
+                DBManager.getInstance().delete(MPerson.class, new Search("id", persons.get(pos).getId() + "", Search.EQUAL));
                 dialog.dismiss();
                 prepareList();
             }
@@ -107,7 +113,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void prepareList() {
-        persons = DBManager.getInstance().getData(MPerson.class, new Search("name", "4", Search.EQUAL_LESS), new Search("name", "2", Search.GREATER_EQUAL, Search.OR), new Search("name", "1", Search.GREATER_EQUAL));
+        persons = DBManager.getInstance().getData(MPerson.class);
         adapter.addData(persons);
 
     }
@@ -117,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         person.setName(edtName.getText().toString());
         person.setPhone(edtPhone.getText().toString());
         person.setRoll(person.getName().length());
-        DBManager.getInstance().addData(person, "id");
+        DBManager.getInstance().addData(person);
 
         edtName.setText("");
         edtPhone.setText("");

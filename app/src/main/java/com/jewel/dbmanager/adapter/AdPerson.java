@@ -63,7 +63,7 @@ public class AdPerson extends BaseAdapter {
         } else
             viewHolder = (MyViewHolder) convertView.getTag();
         viewHolder.tvName.setText(person.getName());
-        viewHolder.tvPhone.setText(person.getPhone() + ":" + person.getRoll());
+        viewHolder.tvPhone.setText(person.getPhone() + ":" + person.getAge() + ":" + person.getDes());
         convertView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
